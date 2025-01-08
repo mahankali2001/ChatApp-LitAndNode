@@ -5,7 +5,7 @@ This project is a chat application that utilizes a Node.js backend server to con
 ## Project Structure
 
 ```
-lit-app
+ChatApp-LitAndNode
 
 ├── components
 │   └── chat-component.js # Lit web component for chat interface
@@ -24,6 +24,7 @@ lit-app
 1. Install the dependencies:
    ```
    npm install
+   npm install rollup-plugin-lit-css --save-dev
    ```
 
 2. Build the frontend application:
