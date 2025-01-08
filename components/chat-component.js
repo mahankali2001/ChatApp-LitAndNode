@@ -19,32 +19,6 @@ class ChatComponent extends LitElement {
     return css`${styles}`;
   }
 
-  render() {
-    return html`
-      <div className="App">
-      <header className="App-header">
-        <h1>Open AI Chat Application</h1>
-        <div class="chat-container">
-          <div class="messages">
-            ${this.messages.map((msg, index) => 
-              (html`<div key=${index} class="message">${msg}</div>`))}
-          </div>
-          <input 
-            type="text" 
-            .value="${this.userInput}" 
-            @input="${this.handleInput}" 
-            @keydown="${this.handleKeyDown}" 
-            placeholder="Type your message..." 
-          />
-          <button @click="${this.sendMessage}">Send</button>
-          <button @click="${this.handleClearMessage}">Clear</button>
-        </div>
-        </div>
-      </header>
-    </div>
-    `;
-  }
-
   handleInput(event) {
     this.userInput = event.target.value;
   }
@@ -57,10 +31,19 @@ class ChatComponent extends LitElement {
 
   async sendMessage() {
     if (this.userInput.trim() === '') return;
+    const userMessage = { text: this.userInput, sender: 'user' };
+    this.messages = [...this.messages, userMessage];
+    console.log('Sending message:', userMessage);
 
-    this.messages = [...this.messages, `You: ${this.userInput}`];
-    const response = await this.fetchResponse(this.userInput);
-    this.messages = [...this.messages, `AI: ${response}`];
+    try {
+      const response = await this.fetchResponse(this.userInput);
+      console.log('Response:', response);
+      const aiResponse = { text: response, sender: 'bot' };
+      this.messages = [...this.messages, aiResponse];
+    } catch (error) {
+      console.error('Error sending message:', error.message); // Error handling
+    }
+
     this.userInput = '';
   }
 
@@ -89,9 +72,45 @@ class ChatComponent extends LitElement {
       console.log('Backend response text:', data); // Log the response text for debugging
       return data; // Return the plain text response
     } catch (error) {
-      console.error('Error fetching response:', error);
-      return 'Error: Unable to fetch response from AI';
+      console.error('Error fetching response:', error.message);
+      throw error;
+      //return 'Error: Unable to fetch response from AI';
     }
+  }
+
+  render() {
+    return html`
+    <div class="App">
+      <header class="App-header">
+        <h1>Open AI Chat Application</h1>
+        <div class="chat-container">
+          <div class="messages">
+            ${this.messages.map((msg, index) => 
+              html`
+                <div key=${index} class="message ${msg.sender}">
+                  <img
+                    src="${msg.sender === 'user' ? '/public/user-icon.png' : '/public/bot-icon.png'}"
+                    alt="${msg.sender} icon"
+                    class="icon"/>
+                  <div class="message-text">${msg.text}</div>
+                </div>
+              `)}
+          </div>
+          <div class="input-container">
+            <input 
+              type="text" 
+              .value="${this.userInput}" 
+              @input="${this.handleInput}" 
+              @keydown="${this.handleKeyDown}" 
+              placeholder="Type your message..." 
+            />
+            <button @click="${this.sendMessage}">Send</button>
+            <button @click="${this.handleClearMessage}">Clear</button>
+          </div>
+        </div>
+      </header>
+    </div>
+    `;
   }
 }
 
